@@ -1,8 +1,10 @@
 let scene, camera, renderer, rocket, asteroids = [], clock;
 
 function init() {
+  // Create scene
   scene = new THREE.Scene();
 
+  // Create camera
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.z = 5;
 
@@ -18,10 +20,14 @@ function init() {
   rocket.rotation.x = Math.PI / 2;
   scene.add(rocket);
 
+  // Load asteroid texture
+  const textureLoader = new THREE.TextureLoader();
+  const asteroidTexture = textureLoader.load('./moon.png');
+
   // Create asteroids
   for (let i = 0; i < 10; i++) {
     const asteroidGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-    const asteroidMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
+    const asteroidMaterial = new THREE.MeshBasicMaterial({ map: asteroidTexture });
     const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
     asteroid.position.x = Math.random() * 10 - 5;
     asteroid.position.y = Math.random() * 10 - 5;
@@ -75,6 +81,7 @@ function animate() {
       asteroid.position.y = Math.random() * 10 - 5;
     }
 
+    // Collision detection
     if (rocket.position.distanceTo(asteroid.position) < 0.5) {
       alert("Game Over!");
       window.location.reload();
