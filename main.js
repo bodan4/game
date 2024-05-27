@@ -1,3 +1,4 @@
+
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128/build/three.module.js';
 import { CSS2DRenderer, CSS2DObject } from 'https://cdn.jsdelivr.net/npm/three@0.128/examples/jsm/renderers/CSS2DRenderer.js';
 
@@ -15,7 +16,6 @@ let health = 100;
 let score = 0;
 let healthLabel;
 let scoreLabel;
-
 
 function init() {
   // Create scene
@@ -201,33 +201,31 @@ function animate() {
   cssRenderer.render(scene, camera);
 }
 
-// Funcția pentru detectarea coliziunilor între lasere și asteroizi
+// Function for detecting collisions between lasers and asteroids
 function detectCollisions() {
-  // Verifică fiecare asteroid pentru coliziunea cu laserele
+  // Check each asteroid for collision with lasers
   for (let i = 0; i < lasers.length; i++) {
     for (let j = 0; j < asteroids.length; j++) {
-      if (lasers[i].position.distanceTo(asteroids[j].position) < 0.5) { // Distanța de coliziune
-        // Dacă un laser și un asteroid sunt suficient de apropiați, distrugem asteroidul și eliminăm laserul
+      if (lasers[i].position.distanceTo(asteroids[j].position) < 0.5) { // Collision distance
+        // If a laser and an asteroid are close enough, destroy the asteroid and remove the laser
         scene.remove(asteroids[j]);
         scene.remove(lasers[i]);
-        lasers.splice(i, 1); // Eliminăm laserul din array
-        asteroids.splice(j, 1); // Eliminăm asteroidul din array
+        lasers.splice(i, 1); // Remove laser from array
+        asteroids.splice(j, 1); // Remove asteroid from array
 
-        // Incrementăm scorul și actualizăm afișarea scorului
+        // Increment score and update score display
         score += 1;
         updateScoreDisplay();
-        return; // Ne oprim din detectarea coliziunilor după distrugerea unui asteroid
+        return; // Stop collision detection after destroying an asteroid
       }
     }
   }
 }
 
-
-
-// Adaugă un event listener pentru tasta spațiu pentru a trage cu laserul
-function onKeyDownHandler (event) {
+// Add event listener for space key to shoot laser
+function onKeyDownHandler(event) {
   switch (event.key) {
-    case ' ': // Spațiu pentru a trage
+    case ' ': // Space key to shoot
       createLaser();
       break;
     case 'a': // A key
@@ -245,32 +243,40 @@ function onKeyDownHandler (event) {
   }
 }
 
+// Create laser
+function createLaser() {
+  const laserGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 32);
+  const laserMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+  const laser = new THREE.Mesh(laserGeometry, laserMaterial);
+  laser.position.set(rocket.position.x, rocket.position.y, rocket.position.z);
+  laser.rotation.x = Math.PI / 2;
+  lasers.push(laser);
+  scene.add(laser);
+}
 
-
-// Funcția pentru animație
-
+// Animate lasers
 function animateLaser() {
   requestAnimationFrame(animateLaser);
-  // Mișcare laser
+  // Move laser
   for (let i = 0; i < lasers.length; i++) {
-    lasers[i].translateY(laserSpeed * clock.getDelta()); // Deplasare în sus
-    if (lasers[i].position.y > 5) { // Dacă laserul iese din câmpul vizual, îl eliminăm
+    lasers[i].translateY(laserSpeed * clock.getDelta()); // Move upwards
+    if (lasers[i].position.y > 5) { // If laser goes out of view, remove it
       scene.remove(lasers[i]);
       lasers.splice(i, 1);
     }
   }
 
-  detectCollisions(); // Verifică coliziunile cu asteroizii
+  detectCollisions(); // Check for collisions with asteroids
 
   renderer.render(scene, camera);
 }
 
-
-
+// Start the game
 function startGame() {
   document.getElementById('menu').style.display = 'none';
   init();
   animate();
+  animateLaser();
 }
 
 document.getElementById('startButton').addEventListener('click', startGame);
