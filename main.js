@@ -1,6 +1,6 @@
+import * as THREE from 'three';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.128/build/three.module.js';
-import { CSS2DRenderer, CSS2DObject } from 'https://cdn.jsdelivr.net/npm/three@0.128/examples/jsm/renderers/CSS2DRenderer.js';
 
 let scene;
 let camera;
@@ -18,19 +18,15 @@ let healthLabel;
 let scoreLabel;
 
 function init() {
-  // Create scene
   scene = new THREE.Scene();
 
-  // Create camera
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
   camera.position.z = 5;
 
-  // Create renderer
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
 
-  // Create CSS renderer for 2D elements
   cssRenderer = new CSS2DRenderer();
   cssRenderer.setSize(window.innerWidth, window.innerHeight);
   cssRenderer.domElement.style.position = 'absolute';
@@ -50,7 +46,6 @@ function init() {
   rocket.rotation.x = Math.PI / 2;
   scene.add(rocket);
 
-  // Create asteroids
   for (let i = 0; i < 10; i++) {
     const asteroidGeometry = new THREE.SphereGeometry(0.2, 16, 16);
     const asteroidMaterial = new THREE.MeshBasicMaterial({ map: asteroidTexture });
@@ -62,7 +57,6 @@ function init() {
     scene.add(asteroid);
   }
 
-  // Create energies as small cylindrical batteries
   for (let i = 0; i < 5; i++) {
     const energyGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32); // Adjusted size
     const energyMaterial = new THREE.MeshBasicMaterial({ map: energyTexture });
@@ -74,23 +68,18 @@ function init() {
     scene.add(energy);
   }
 
-  // Initialize clock
   clock = new THREE.Clock();
 
-  // Add event listeners
   window.addEventListener('resize', onWindowResize);
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('keydown', onKeyDownHandler);
-  // Create and add health and score labels
   createLabels();
 
-  // Initialize health and score display
   updateHealthDisplay();
   updateScoreDisplay();
 }
 
 function createLabels() {
-  // Health label
   const healthDiv = document.createElement('div');
   healthDiv.className = 'label';
   healthDiv.style.color = 'white';
@@ -100,7 +89,6 @@ function createLabels() {
   healthLabel.position.set(-2, 2, 0);
   scene.add(healthLabel);
 
-  // Score label
   const scoreDiv = document.createElement('div');
   scoreDiv.className = 'label';
   scoreDiv.style.color = 'white';
