@@ -1,4 +1,5 @@
-// Comment
+import * as THREE from 'three';
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 let scene;
 let camera;
@@ -6,16 +7,18 @@ let renderer;
 let cssRenderer;
 let rocket;
 let asteroids = [];
+let planets = [];
 let lasers = [];
 let energies = [];
 let laserSpeed = 5;
 let clock;
 let health = 100;
 let score = 0;
-let energyCount = 0; // Initialize energy count
+let energyCollected = 0;
 let healthLabel;
 let scoreLabel;
-let energyLabel; // Add energy label
+let energyLabel;
+let keysPressed = {};
 
 function init() {
   scene = new THREE.Scene();
@@ -51,49 +54,68 @@ function init() {
   rocket.position.set(0, 0, 0); // Set position in the scene
   scene.add(rocket);
 
-  // Generate initial energy
-  for (let i = 0; i < 5; i++) {
-    generateEnergy(energyTexture);
-  }
-
-  // Generate asteroids
-  generateAsteroids(asteroidTextures);
-
-  clock = new THREE.Clock();
-
-  window.addEventListener('resize', onWindowResize);
-  document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('keydown', onKeyDownHandler);
-
-  createLabels();
-  updateHealthDisplay();
-  updateScoreDisplay();
-  updateEnergyDisplay(); // Update energy display
-}
-
-function generateAsteroids(asteroidTextures) {
   for (let i = 0; i < 10; i++) {
     const asteroidGeometry = new THREE.SphereGeometry(0.2, 16, 16);
     const randomTextureIndex = Math.floor(Math.random() * asteroidTextures.length);
     const asteroidMaterial = new THREE.MeshBasicMaterial({ map: asteroidTextures[randomTextureIndex] });
     const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
     asteroid.position.x = Math.random() * 10 - 5;
-    asteroid.position.y = Math.random() * 10 - 5;
+    asteroid.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
     asteroid.position.z = Math.random() * -20;
     asteroids.push(asteroid);
     scene.add(asteroid);
   }
-}
 
-function generateEnergy(energyTexture) {
-  const energyGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32);
-  const energyMaterial = new THREE.MeshBasicMaterial({ map: energyTexture });
-  const energy = new THREE.Mesh(energyGeometry, energyMaterial);
-  energy.position.x = Math.random() * 10 - 5;
-  energy.position.y = Math.random() * 10 - 5;
-  energy.position.z = Math.random() * -20;
-  energies.push(energy);
-  scene.add(energy);
+  // Create energies
+  for (let i = 0; i < 5; i++) {
+    const energyGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.15, 32);  // Smaller geometry
+    const energyMaterial = new THREE.MeshBasicMaterial({ map: energyTexture });
+    const energy = new THREE.Mesh(energyGeometry, energyMaterial);
+    energy.position.x = Math.random() * 10 - 5;
+    energy.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
+    energy.position.z = Math.random() * -20;
+    energies.push(energy);
+    scene.add(energy);
+  }
+
+
+  function addRandomPlanets(numPlanets) {
+    const textureLoader = new THREE.TextureLoader();
+    const planetTextures = [
+      textureLoader.load('./planet1.png'),
+      textureLoader.load('./planet2.png'),
+      textureLoader.load('./planet3.png'),
+      textureLoader.load('./planet4.png')
+    ];
+
+    for (let i = 0; i < numPlanets; i++) {
+      const planetGeometry = new THREE.SphereGeometry(0.5, 32, 32); // Adjust size as needed
+      const randomTextureIndex = Math.floor(Math.random() * planetTextures.length);
+      const planetMaterial = new THREE.MeshBasicMaterial({ map: planetTextures[randomTextureIndex], transparent: true });
+      const planet = new THREE.Mesh(planetGeometry, planetMaterial);
+
+      // Randomize position
+      planet.position.x = Math.random() * 20 - 10; // Adjust range as needed
+      planet.position.y = Math.random() * 10 - 5;  // Adjust range as needed
+      planet.position.z = Math.random() * -50 - 10; // Ensure planets are initially placed in front
+
+      planets.push(planet);
+      scene.add(planet);
+    }
+  }
+  // Add random planets
+  addRandomPlanets(9); // Adjust the number of planets as needed
+
+  clock = new THREE.Clock();
+
+  window.addEventListener('resize', onWindowResize);
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keyup', onKeyUp);
+
+  createLabels();
+  updateHealthDisplay();
+  updateScoreDisplay();
+  updateEnergyDisplay();
 }
 
 function createLabels() {
@@ -116,13 +138,13 @@ function createLabels() {
   scene.add(scoreLabel);
 
   const energyDiv = document.createElement('div');
-  energyDiv.className = 'label'; // Add label class
+  energyDiv.className = 'label';
   energyDiv.style.color = 'white';
   energyDiv.style.fontSize = '20px';
-  energyDiv.textContent = `Energy: ${energyCount}`; // Initial energy count
+  energyDiv.textContent = `Energy: ${energyCollected}`;
   energyLabel = new CSS2DObject(energyDiv);
-  energyLabel.position.set(-1.5, 1.7, 0); // Position energy label
-  scene.add(energyLabel); // Add energy label to scene
+  energyLabel.position.set(0, 2, 0);
+  scene.add(energyLabel);
 }
 
 function onWindowResize() {
@@ -133,20 +155,11 @@ function onWindowResize() {
 }
 
 function onKeyDown(event) {
-  switch (event.key) {
-    case 'a': // A key
-      rocket.position.x -= 0.1;
-      break;
-    case 'd': // D key
-      rocket.position.x += 0.1;
-      break;
-    case 'w': // W key
-      rocket.position.y += 0.1;
-      break;
-    case 's': // S key
-      rocket.position.y -= 0.1;
-      break;
-  }
+  keysPressed[event.key] = true;
+}
+
+function onKeyUp(event) {
+  keysPressed[event.key] = false;
 }
 
 function updateHealthDisplay() {
@@ -158,24 +171,17 @@ function updateScoreDisplay() {
 }
 
 function updateEnergyDisplay() {
-  energyLabel.element.textContent = `Energy: ${energyCount}`; // Update energy display
-}
-
-function gameOver() {
-  document.getElementById('menu').style.display = 'block'; // Show the menu again
-  document.getElementById('menu').innerHTML = '<h1>Game Over!</h1>'; // Display game over message
-  renderer.domElement.style.display = 'none'; // Hide the WebGL canvas
-  cssRenderer.domElement.style.display = 'none'; // Hide the CSS2D canvas
+  energyLabel.element.textContent = `Energy: ${energyCollected}`;
 }
 
 function restartGame() {
   // Reset game state
   health = 100;
   score = 0;
-  energyCount = 0; // Reset energy count
+  energyCollected = 0;
   updateHealthDisplay();
   updateScoreDisplay();
-  updateEnergyDisplay(); // Reset energy display
+  updateEnergyDisplay();
 
   // Remove existing asteroids and lasers from the scene
   asteroids.forEach(asteroid => scene.remove(asteroid));
@@ -186,12 +192,28 @@ function restartGame() {
   lasers = [];
   energies = [];
 
-  // Generate new asteroids
-  generateAsteroids(asteroidTextures);
+  // Reinitialize game objects
+  for (let i = 0; i < 10; i++) {
+    const asteroidGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+    const randomTextureIndex = Math.floor(Math.random() * asteroidTextures.length);
+    const asteroidMaterial = new THREE.MeshBasicMaterial({ map: asteroidTextures[randomTextureIndex] });
+    const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
+    asteroid.position.x = Math.random() * 10 - 5;
+    asteroid.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
+    asteroid.position.z = Math.random() * -20;
+    asteroids.push(asteroid);
+    scene.add(asteroid);
+  }
 
-  // Generate initial energy
   for (let i = 0; i < 5; i++) {
-    generateEnergy(energyTexture);
+    const energyGeometry = new THREE.CylinderGeometry(0.05, 0.05, 0.15, 32);  // Smaller geometry
+    const energyMaterial = new THREE.MeshBasicMaterial({ map: energyTexture });
+    const energy = new THREE.Mesh(energyGeometry, energyMaterial);
+    energy.position.x = Math.random() * 10 - 5;
+    energy.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
+    energy.position.z = Math.random() * -20;
+    energies.push(energy);
+    scene.add(energy);
   }
 
   // Hide game over screen and show game screen
@@ -199,10 +221,33 @@ function restartGame() {
   renderer.domElement.style.display = 'block';
   cssRenderer.domElement.style.display = 'block';
 }
+
+function gameOver() {
+  alert('Game Over!');
+  restartGame();
+}
+
 function animate() {
   requestAnimationFrame(animate);
 
   const delta = clock.getDelta();
+
+  // Smooth rocket movement
+  if (keysPressed['a']) {
+    rocket.position.x -= 2 * delta;
+  }
+  if (keysPressed['d']) {
+    rocket.position.x += 2 * delta;
+  }
+  if (keysPressed['w']) {
+    rocket.position.y += 2 * delta;
+  }
+  if (keysPressed['s']) {
+    rocket.position.y -= 2 * delta;
+  }
+  if (keysPressed[' ']) {
+    createLaser();
+  }
 
   // Move asteroids
   asteroids.forEach(asteroid => {
@@ -210,7 +255,7 @@ function animate() {
     if (asteroid.position.z > 5) {
       asteroid.position.z = Math.random() * -20;
       asteroid.position.x = Math.random() * 10 - 5;
-      asteroid.position.y = Math.random() * 10 - 5;
+      asteroid.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
     }
     // Collision detection with asteroids
     if (rocket.position.distanceTo(asteroid.position) < 0.5) {
@@ -221,7 +266,7 @@ function animate() {
       } else {
         asteroid.position.z = Math.random() * -20;
         asteroid.position.x = Math.random() * 10 - 5;
-        asteroid.position.y = Math.random() * 10 - 5;
+        asteroid.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
       }
     }
   });
@@ -229,23 +274,25 @@ function animate() {
   // Move energies
   energies.forEach(energy => {
     energy.position.z += 1 * delta;
-    energy.rotation.y += 0.02 * delta; // Rotate energy
     if (energy.position.z > 5) {
       energy.position.z = Math.random() * -20;
       energy.position.x = Math.random() * 10 - 5;
-      energy.position.y = Math.random() * 10 - 5;
+      energy.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
     }
     // Collision detection with energies
     if (rocket.position.distanceTo(energy.position) < 0.5) {
+      energyCollected += 1;
       health = Math.min(100, health + 20);
       updateHealthDisplay();
+      updateEnergyDisplay();
       energy.position.z = Math.random() * -20;
       energy.position.x = Math.random() * 10 - 5;
-      energy.position.y = Math.random() * 10 - 5;
-      energyCount += 25; // Increase energy count
-      updateEnergyDisplay(); // Update energy display
+      energy.position.y = Math.random() * 4 - 2;  // Adjusted to be higher
     }
   });
+
+  moveLasers(delta);
+  detectCollisions();
 
   renderer.render(scene, camera);
   cssRenderer.render(scene, camera);
@@ -271,27 +318,6 @@ function detectCollisions() {
   }
 }
 
-// Add event listener for space key to shoot laser
-function onKeyDownHandler(event) {
-  switch (event.key) {
-    case ' ': // Space key to shoot
-      createLaser();
-      break;
-    case 'a': // A key
-      rocket.position.x -= 0.1;
-      break;
-    case 'd': // D key
-      rocket.position.x += 0.1;
-      break;
-    case 'w': // W key
-      rocket.position.y += 0.1;
-      break;
-    case 's': // S key
-      rocket.position.y -= 0.1;
-      break;
-  }
-}
-
 // Create laser
 function createLaser() {
   const laserGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 32);
@@ -303,21 +329,14 @@ function createLaser() {
   scene.add(laser);
 }
 
-// Animate lasers
-function animateLaser() {
-  requestAnimationFrame(animateLaser);
-  // Move laser
+function moveLasers(delta) {
   for (let i = 0; i < lasers.length; i++) {
-    lasers[i].translateY(laserSpeed * clock.getDelta()); // Move upwards
-    if (lasers[i].position.y > 5) { // If laser goes out of view, remove it
+    lasers[i].position.z -= laserSpeed * delta;
+    if (lasers[i].position.z < -20) {
       scene.remove(lasers[i]);
       lasers.splice(i, 1);
     }
   }
-
-  detectCollisions(); // Check for collisions with asteroids
-
-  renderer.render(scene, camera);
 }
 
 // Start the game
@@ -325,7 +344,6 @@ function startGame() {
   document.getElementById('menu').style.display = 'none';
   init();
   animate();
-  animateLaser();
 }
 
 document.getElementById('startButton').addEventListener('click', startGame);
