@@ -1,7 +1,4 @@
-import * as THREE from 'three';
-import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-
-// comment
+// Comment
 
 let scene;
 let camera;
@@ -15,9 +12,10 @@ let laserSpeed = 5;
 let clock;
 let health = 100;
 let score = 0;
+let energyCount = 0; // Initialize energy count
 let healthLabel;
 let scoreLabel;
-let energyTexture; // Declare energy texture variable
+let energyLabel; // Add energy label
 
 function init() {
   scene = new THREE.Scene();
@@ -44,7 +42,7 @@ function init() {
     textureLoader.load('./asteroid3.png'),
     textureLoader.load('./asteroid4.png')
   ];
-  energyTexture = textureLoader.load('./energy.png'); // Assign texture to energyTexture variable
+  const energyTexture = textureLoader.load('./energy.png');
 
   // Create rocket
   const rocketGeometry = new THREE.PlaneGeometry(0.8, 0.65);
@@ -53,6 +51,27 @@ function init() {
   rocket.position.set(0, 0, 0); // Set position in the scene
   scene.add(rocket);
 
+  // Generate initial energy
+  for (let i = 0; i < 5; i++) {
+    generateEnergy(energyTexture);
+  }
+
+  // Generate asteroids
+  generateAsteroids(asteroidTextures);
+
+  clock = new THREE.Clock();
+
+  window.addEventListener('resize', onWindowResize);
+  document.addEventListener('keydown', onKeyDown);
+  document.addEventListener('keydown', onKeyDownHandler);
+
+  createLabels();
+  updateHealthDisplay();
+  updateScoreDisplay();
+  updateEnergyDisplay(); // Update energy display
+}
+
+function generateAsteroids(asteroidTextures) {
   for (let i = 0; i < 10; i++) {
     const asteroidGeometry = new THREE.SphereGeometry(0.2, 16, 16);
     const randomTextureIndex = Math.floor(Math.random() * asteroidTextures.length);
@@ -64,16 +83,17 @@ function init() {
     asteroids.push(asteroid);
     scene.add(asteroid);
   }
+}
 
-  clock = new THREE.Clock();
-
-  window.addEventListener('resize', onWindowResize);
-  document.addEventListener('keydown', onKeyDown);
-  document.addEventListener('keydown', onKeyDownHandler);
-
-  createLabels();
-  updateHealthDisplay();
-  updateScoreDisplay();
+function generateEnergy(energyTexture) {
+  const energyGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32);
+  const energyMaterial = new THREE.MeshBasicMaterial({ map: energyTexture });
+  const energy = new THREE.Mesh(energyGeometry, energyMaterial);
+  energy.position.x = Math.random() * 10 - 5;
+  energy.position.y = Math.random() * 10 - 5;
+  energy.position.z = Math.random() * -20;
+  energies.push(energy);
+  scene.add(energy);
 }
 
 function createLabels() {
@@ -94,6 +114,15 @@ function createLabels() {
   scoreLabel = new CSS2DObject(scoreDiv);
   scoreLabel.position.set(1.5, 2, 0);
   scene.add(scoreLabel);
+
+  const energyDiv = document.createElement('div');
+  energyDiv.className = 'label'; // Add label class
+  energyDiv.style.color = 'white';
+  energyDiv.style.fontSize = '20px';
+  energyDiv.textContent = `Energy: ${energyCount}`; // Initial energy count
+  energyLabel = new CSS2DObject(energyDiv);
+  energyLabel.position.set(-1.5, 1.7, 0); // Position energy label
+  scene.add(energyLabel); // Add energy label to scene
 }
 
 function onWindowResize() {
@@ -128,21 +157,27 @@ function updateScoreDisplay() {
   scoreLabel.element.textContent = `Score: ${score}`;
 }
 
+function updateEnergyDisplay() {
+  energyLabel.element.textContent = `Energy: ${energyCount}`; // Update energy display
+}
+
 function gameOver() {
-  document.getElementById('gameOver').style.display = 'block';
-  document.getElementById('menu').style.display = 'none';
-  renderer.domElement.style.display = 'none';
-  cssRenderer.domElement.style.display = 'none';
+  document.getElementById('menu').style.display = 'block'; // Show the menu again
+  document.getElementById('menu').innerHTML = '<h1>Game Over!</h1>'; // Display game over message
+  renderer.domElement.style.display = 'none'; // Hide the WebGL canvas
+  cssRenderer.domElement.style.display = 'none'; // Hide the CSS2D canvas
 }
 
 function restartGame() {
   // Reset game state
   health = 100;
   score = 0;
+  energyCount = 0; // Reset energy count
   updateHealthDisplay();
   updateScoreDisplay();
+  updateEnergyDisplay(); // Reset energy display
 
-  // Remove existing asteroids, lasers, and energies from the scene
+  // Remove existing asteroids and lasers from the scene
   asteroids.forEach(asteroid => scene.remove(asteroid));
   lasers.forEach(laser => scene.remove(laser));
   energies.forEach(energy => scene.remove(energy));
@@ -151,17 +186,12 @@ function restartGame() {
   lasers = [];
   energies = [];
 
-  // Reinitialize game objects
-  for (let i = 0; i < 10; i++) {
-    const asteroidGeometry = new THREE.SphereGeometry(0.2, 16, 16);
-    const randomTextureIndex = Math.floor(Math.random() * asteroidTextures.length);
-    const asteroidMaterial = new THREE.MeshBasicMaterial({ map: asteroidTextures[randomTextureIndex] });
-    const asteroid = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
-    asteroid.position.x = Math.random() * 10 - 5;
-    asteroid.position.y = Math.random() * 10 - 5;
-    asteroid.position.z = Math.random() * -20;
-    asteroids.push(asteroid);
-    scene.add(asteroid);
+  // Generate new asteroids
+  generateAsteroids(asteroidTextures);
+
+  // Generate initial energy
+  for (let i = 0; i < 5; i++) {
+    generateEnergy(energyTexture);
   }
 
   // Hide game over screen and show game screen
@@ -169,7 +199,6 @@ function restartGame() {
   renderer.domElement.style.display = 'block';
   cssRenderer.domElement.style.display = 'block';
 }
-
 function animate() {
   requestAnimationFrame(animate);
 
@@ -197,100 +226,107 @@ function animate() {
     }
   });
 
-    // Generate energy at random intervals during the game
-    if (Math.random() < 0.01) { // Adjust the probability as needed
-      const energyGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.3, 32);
-      const energyMaterial = new THREE.MeshBasicMaterial({ map: energyTexture });
-      const energy = new THREE.Mesh(energyGeometry, energyMaterial);
+  // Move energies
+  energies.forEach(energy => {
+    energy.position.z += 1 * delta;
+    energy.rotation.y += 0.02 * delta; // Rotate energy
+    if (energy.position.z > 5) {
+      energy.position.z = Math.random() * -20;
       energy.position.x = Math.random() * 10 - 5;
       energy.position.y = Math.random() * 10 - 5;
+    }
+    // Collision detection with energies
+    if (rocket.position.distanceTo(energy.position) < 0.5) {
+      health = Math.min(100, health + 20);
+      updateHealthDisplay();
       energy.position.z = Math.random() * -20;
-      energies.push(energy);
-      scene.add(energy);
+      energy.position.x = Math.random() * 10 - 5;
+      energy.position.y = Math.random() * 10 - 5;
+      energyCount += 25; // Increase energy count
+      updateEnergyDisplay(); // Update energy display
     }
-  
-    renderer.render(scene, camera);
-    cssRenderer.render(scene, camera);
-  }
-  
-  // Function for detecting collisions between lasers and asteroids
-  function detectCollisions() {
-    // Check each asteroid for collision with lasers
-    for (let i = 0; i < lasers.length; i++) {
-      for (let j = 0; j < asteroids.length; j++) {
-        if (lasers[i].position.distanceTo(asteroids[j].position) < 0.5) { // Collision distance
-          // If a laser and an asteroid are close enough, destroy the asteroid and remove the laser
-          scene.remove(asteroids[j]);
-          scene.remove(lasers[i]);
-          lasers.splice(i, 1); // Remove laser from array
-          asteroids.splice(j, 1); // Remove asteroid from array
-          // Increment score and update score display
-          score += 1;
-          updateScoreDisplay();
-          return; // Stop collision detection after destroying an asteroid
-        }
-      }
-    }
-  }
-  
-  // Add event listener for space key to shoot laser
-  function onKeyDownHandler(event) {
-    switch (event.key) {
-      case ' ': // Space key to shoot
-        createLaser();
-        break;
-      case 'a': // A key
-        rocket.position.x -= 0.1;
-        break;
-      case 'd': // D key
-        rocket.position.x += 0.1;
-        break;
-      case 'w': // W key
-        rocket.position.y += 0.1;
-        break;
-      case 's': // S key
-        rocket.position.y -= 0.1;
-        break;
-    }
-  }
-  
-  // Create laser
-  function createLaser() {
-    const laserGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 32);
-    const laserMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-    const laser = new THREE.Mesh(laserGeometry, laserMaterial);
-    laser.position.set(rocket.position.x, rocket.position.y, rocket.position.z);
-    laser.rotation.x = Math.PI / 2;
-    lasers.push(laser);
-    scene.add(laser);
-  }
-  
-  // Animate lasers
-  function animateLaser() {
-    requestAnimationFrame(animateLaser);
-    // Move laser
-    for (let i = 0; i < lasers.length; i++) {
-      lasers[i].translateY(laserSpeed * clock.getDelta()); // Move upwards
-      if (lasers[i].position.y > 5) { // If laser goes out of view, remove it
-        scene.remove(lasers[i]);
-        lasers.splice(i, 1);
-      }
-    }
-  
-    detectCollisions(); // Check for collisions with asteroids
-  
-    renderer.render(scene, camera);
-  }
-  
-  // Start the game
-  function startGame() {
-    document.getElementById('menu').style.display = 'none';
-    init();
-    animate();
-    animateLaser();
-  }
-  
-  document.getElementById('startButton').addEventListener('click', startGame);
-  document.getElementById('restartButton').addEventListener('click', restartGame);
+  });
 
-  
+  renderer.render(scene, camera);
+  cssRenderer.render(scene, camera);
+}
+
+// Function for detecting collisions between lasers and asteroids
+function detectCollisions() {
+  // Check each asteroid for collision with lasers
+  for (let i = 0; i < lasers.length; i++) {
+    for (let j = 0; j < asteroids.length; j++) {
+      if (lasers[i].position.distanceTo(asteroids[j].position) < 0.5) { // Collision distance
+        // If a laser and an asteroid are close enough, destroy the asteroid and remove the laser
+        scene.remove(asteroids[j]);
+        scene.remove(lasers[i]);
+        lasers.splice(i, 1); // Remove laser from array
+        asteroids.splice(j, 1); // Remove asteroid from array
+        // Increment score and update score display
+        score += 1;
+        updateScoreDisplay();
+        return; // Stop collision detection after destroying an asteroid
+      }
+    }
+  }
+}
+
+// Add event listener for space key to shoot laser
+function onKeyDownHandler(event) {
+  switch (event.key) {
+    case ' ': // Space key to shoot
+      createLaser();
+      break;
+    case 'a': // A key
+      rocket.position.x -= 0.1;
+      break;
+    case 'd': // D key
+      rocket.position.x += 0.1;
+      break;
+    case 'w': // W key
+      rocket.position.y += 0.1;
+      break;
+    case 's': // S key
+      rocket.position.y -= 0.1;
+      break;
+  }
+}
+
+// Create laser
+function createLaser() {
+  const laserGeometry = new THREE.CylinderGeometry(0.05, 0.05, 1, 32);
+  const laserMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+  const laser = new THREE.Mesh(laserGeometry, laserMaterial);
+  laser.position.set(rocket.position.x, rocket.position.y, rocket.position.z);
+  laser.rotation.x = Math.PI / 2;
+  lasers.push(laser);
+  scene.add(laser);
+}
+
+// Animate lasers
+function animateLaser() {
+  requestAnimationFrame(animateLaser);
+  // Move laser
+  for (let i = 0; i < lasers.length; i++) {
+    lasers[i].translateY(laserSpeed * clock.getDelta()); // Move upwards
+    if (lasers[i].position.y > 5) { // If laser goes out of view, remove it
+      scene.remove(lasers[i]);
+      lasers.splice(i, 1);
+    }
+  }
+
+  detectCollisions(); // Check for collisions with asteroids
+
+  renderer.render(scene, camera);
+}
+
+// Start the game
+function startGame() {
+  document.getElementById('menu').style.display = 'none';
+  init();
+  animate();
+  animateLaser();
+}
+
+document.getElementById('startButton').addEventListener('click', startGame);
+document.getElementById('restartButton').addEventListener('click', restartGame);
