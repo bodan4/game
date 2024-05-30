@@ -125,7 +125,7 @@ function createLabels() {
   healthDiv.style.fontSize = '20px';
   healthDiv.textContent = `Health: ${health}%`;
   healthLabel = new CSS2DObject(healthDiv);
-  healthLabel.position.set(-1.5, 2, 0);
+  healthLabel.position.set(-3.5, 3.2, 0);
   scene.add(healthLabel);
 
   const scoreDiv = document.createElement('div');
@@ -134,7 +134,7 @@ function createLabels() {
   scoreDiv.style.fontSize = '20px';
   scoreDiv.textContent = `Score: ${score}`;
   scoreLabel = new CSS2DObject(scoreDiv);
-  scoreLabel.position.set(1.5, 2, 0);
+  scoreLabel.position.set(2.5, 3.2, 0);
   scene.add(scoreLabel);
 
   const energyDiv = document.createElement('div');
@@ -143,7 +143,7 @@ function createLabels() {
   energyDiv.style.fontSize = '20px';
   energyDiv.textContent = `Energy: ${energyCollected}`;
   energyLabel = new CSS2DObject(energyDiv);
-  energyLabel.position.set(0, 2, 0);
+  energyLabel.position.set(0, 3.2, 0);
   scene.add(energyLabel);
 }
 
@@ -308,7 +308,7 @@ function detectCollisions() {
         scene.remove(asteroids[j]);
         scene.remove(lasers[i]);
         lasers.splice(i, 1); // Remove laser from array
-        asteroids.splice(j, 1); // Remove asteroid from array
+        asteroids.splice(j, 1); // Remove asteroid
         // Increment score and update score display
         score += 1;
         updateScoreDisplay();
@@ -348,3 +348,4 @@ function startGame() {
 
 document.getElementById('startButton').addEventListener('click', startGame);
 document.getElementById('restartButton').addEventListener('click', restartGame);
+

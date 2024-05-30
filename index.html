@@ -5,76 +5,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Three.js Space Game</title>
+  <link href="./style.css" type="text/css" rel="stylesheet">
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      background: url(./stars.jpg) repeat;
-      color: #fff;
-      animation: backgroundScroll 20s linear infinite;
-    }
-
-    @keyframes backgroundScroll {
-      from {
-        background-position: 0 0;
-      }
-      to {
-        background-position: 100% 0;
-      }
-    }
-
     canvas {
       display: block;
+      margin: 0 auto;
+      background: #000;
     }
 
-    #menu {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+    #gameOverScreen,
+    #pauseButton,
+    #resumeButton {
       text-align: center;
-      background: rgba(80, 80, 80, 0.85);
-      padding: 30px 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-      transition: transform 0.3s ease-out;
-    }
-
-    #menu h1 {
-      margin: 0 0 20px;
-      font-size: 32px;
-      color: #38ff10;
-    }
-
-    #startButton {
-      padding: 12px 25px;
-      font-size: 20px;
-      cursor: pointer;
-      background-color: #08fbff;
-      border: none;
-      border-radius: 8px;
-      color: #000000;
-      transition: background-color 0.3s ease, transform 0.3s ease;
-    }
-
-    #startButton:hover {
-      background-color: #38ff10;
-    }
-
-    #startButton:active {
-      background-color: #e63627;
     }
   </style>
 </head>
 
 <body>
+  <div id="marquee">
+    <!-- <marquee behavior="scroll" direction="left">Space Game, un joc shooter, clasic cu o misiunie simpla de indeplinit</marquee> -->
+  </div>
   <div id="menu">
     <h1>Space Game</h1>
     <button id="startButton">Start Game</button>
   </div>
+
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <div id="gameOverScreen" style="display: none;">
+    <h1>Game Over!</h1>
+    <button id="restartButton"><img src="./restart.png"></button>
+  </div>
+  <button id="pauseButton">Pause</button>
+  <button id="resumeButton" style="display: none;">Resume</button>
+
   <script type="module" src="./main.js"></script>
-  <!-- <script type="module" src="./script.js"></script> -->
+  <script type="text/javascript">
+
+
+  </script>
 </body>
 
 </html>
