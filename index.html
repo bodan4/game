@@ -6,43 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Three.js Space Game</title>
   <link href="./style.css" type="text/css" rel="stylesheet">
-  <style>
-    canvas {
-      display: block;
-      margin: 0 auto;
-      background: #000;
-    }
-
-    #gameOverScreen,
-    #pauseButton,
-    #resumeButton {
-      text-align: center;
-    }
-  </style>
 </head>
 
 <body>
-  <div id="marquee">
-    <!-- <marquee behavior="scroll" direction="left">Space Game, un joc shooter, clasic cu o misiunie simpla de indeplinit</marquee> -->
-  </div>
   <div id="menu">
     <h1>Space Game</h1>
     <button id="startButton">Start Game</button>
   </div>
-
-  <canvas id="gameCanvas" width="800" height="600"></canvas>
-  <div id="gameOverScreen" style="display: none;">
-    <h1>Game Over!</h1>
-    <button id="restartButton"><img src="./restart.png"></button>
-  </div>
-  <button id="pauseButton">Pause</button>
-  <button id="resumeButton" style="display: none;">Resume</button>
-
   <script type="module" src="./main.js"></script>
-  <script type="text/javascript">
-
-
-  </script>
 </body>
 
 </html>
